@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sprite QA Lightbox</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --ink: #1d2330; --muted: #5d6676; --line: #dde1e8;
+    --accent: #2f6fdb; --ok: #1f8a4c; --fix: #b26a00; --drop: #b3261e;
+    --check1: #e6e8ec; --check2: #ffffff;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #13161c; --panel: #1b2029; --ink: #e6e9ef; --muted: #98a2b3; --line: #2c3340;
+      --accent: #7aa7ff; --ok: #53c77f; --fix: #f0b35a; --drop: #ff7a70; --check1: #262d38; --check2: #1b2029;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #13161c; --panel: #1b2029; --ink: #e6e9ef; --muted: #98a2b3; --line: #2c3340;
+    --accent: #7aa7ff; --ok: #53c77f; --fix: #f0b35a; --drop: #ff7a70; --check1: #262d38; --check2: #1b2029;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  header { padding: 16px 16px 8px; max-width: 1400px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .lede { color: var(--muted); margin: 0; }
+  details { margin: 10px 0 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+  details summary { cursor: pointer; font-weight: 600; }
+  details ol { padding-left: 20px; }
+  code { font-family: var(--mono); font-size: 12px; background: var(--check1); padding: 1px 4px; border-radius: 4px; }
+  .controls { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  .row { max-width: 1400px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+  .row + .row { margin-top: 8px; }
+  select, input, button { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; }
+  button { cursor: pointer; }
+  input[type="search"] { min-width: 200px; flex: 1 1 200px; max-width: 320px; }
+  .chip { border-radius: 999px; padding: 4px 10px; font-size: 13px; }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .spacer { flex: 1; }
+  main { max-width: 1400px; margin: 0 auto; padding: 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--cell, 200px), 1fr)); gap: 12px; }
+  .card { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+  .card.d-ok { border-color: var(--ok); } .card.d-fix { border-color: var(--fix); } .card.d-drop { border-color: var(--drop); }
+  .bg-check { background-image: linear-gradient(45deg, var(--check1) 25%, transparent 25%, transparent 75%, var(--check1) 75%),
+      linear-gradient(45deg, var(--check1) 25%, var(--check2) 25%, var(--check2) 75%, var(--check1) 75%);
+    background-size: 16px 16px; background-position: 0 0, 8px 8px; }
+  .bg-grass { background: #5b8f3a; } .bg-sand { background: #e6c88a; } .bg-dark { background: #111418; }
+  .preview { height: var(--cell, 200px); display: flex; align-items: center; justify-content: center; cursor: zoom-in; padding: 8px; position: relative; }
+  .preview img { image-rendering: pixelated; max-width: 100%; max-height: 100%; }
+  .meta { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 5px; flex: 1; }
+  .id { font-family: var(--mono); font-size: 12px; word-break: break-all; }
+  .name { font-weight: 600; word-break: break-word; }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; padding: 2px 7px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
+  .badge.cls { color: var(--accent); border-color: var(--accent); }
+  .small { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .desc { margin: 0; }
+  .qa { display: flex; gap: 6px; margin-top: auto; }
+  .qa button { flex: 1; font-size: 13px; padding: 5px 6px; }
+  .qa button[aria-pressed="true"][data-v="ok"] { background: var(--ok); color: #fff; border-color: var(--ok); }
+  .qa button[aria-pressed="true"][data-v="fix"] { background: var(--fix); color: #111; border-color: var(--fix); }
+  .qa button[aria-pressed="true"][data-v="drop"] { background: var(--drop); color: #fff; border-color: var(--drop); }
+  .empty { color: var(--muted); padding: 40px 0; text-align: center; }
+  .error { max-width: 760px; margin: 40px auto; padding: 16px; border: 1px solid var(--drop); border-radius: 8px; background: var(--panel); }
+  dialog { border: none; border-radius: 12px; padding: 0; width: min(1100px, 96vw); max-height: 94vh; background: var(--panel); color: var(--ink); }
+  dialog::backdrop { background: rgba(10,12,16,.7); }
+  .dlg { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+  .dlg-l { padding: 16px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .dlg-r { padding: 16px; overflow: auto; max-height: 88vh; min-width: 0; }
+  .big { min-height: 280px; display: flex; align-items: center; justify-content: center; border-radius: 8px; padding: 10px; overflow: auto; }
+  canvas { image-rendering: pixelated; max-width: 100%; display: block; }
+  #ctx { width: 100%; border-radius: 6px; }
+  .dlg h2 { font-size: 16px; margin: 0; font-family: var(--mono); word-break: break-all; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; margin-top: 12px; }
+  .kv b { color: var(--muted); font-weight: 600; }
+  .kv span { font-family: var(--mono); font-size: 12px; word-break: break-all; }
+  .dlg-r .qa { margin-top: 14px; } .dlg-r .qa button { padding: 9px; }
+  textarea { width: 100%; min-height: 80px; font: inherit; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 8px; margin-top: 10px; }
+  .nav { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: 12px; }
+  .close { position: absolute; top: 8px; right: 8px; }
+  .legend { font-size: 12px; color: var(--muted); }
+  @media (max-width: 780px) { .dlg { grid-template-columns: 1fr; } .dlg-l { border-right: none; border-bottom: 1px solid var(--line); } .dlg-r { max-height: none; } }
+  .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 8px; font-size: 13px; display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Sprite QA Lightbox</h1>
+  <p class="lede">Every sprite in <code>catalog.js</code> / <code>OBJECTS.md</code>, shown exactly as the game will load it: the masked PNG from <code>sprites/</code>.</p>
+  <details>
+    <summary>How to review, and how the agent uses the result</summary>
+    <ol>
+      <li>Filter by sheet, class or search. Switch the preview background (checker / grass / sand / dark) to spot stray or missing edge pixels.</li>
+      <li>Click a card. Left: the sprite enlarged with its <b>anchor</b> (red cross = foot point used for placement and depth sorting). Below: the source sheet dimmed, with this sprite's own pixels lit and its box outlined — anything lit that is not this object is a masking error.</li>
+      <li>Check: whole object present (incl. its shadow); no neighbour pixels; anchor at the base of the trunk/body; class, name and description correct.</li>
+      <li>Mark <b>OK</b>, <b>Fix</b> (write what is wrong in the note) or <b>Drop</b> (not useful as a game object). Keys in the dialog: ← → navigate, O / F / D mark.</li>
+      <li><b>Export QA</b> downloads <code>tiles-qa.json</code> (schema <code>tiles-qa/2</code>). Give it to the agent.</li>
+    </ol>
+    <p><b>For the agent:</b> this page is read-only. Join on <code>id</code>. For <code>fix</code> entries, change the segmentation masks or labels as the note says and regenerate sprites, atlas, catalog and <code>OBJECTS.md</code>; remove <code>drop</code> entries from the catalog. Never hand-edit atlas coordinates.</p>
+  </details>
+</header>
+
+<div class="controls">
+  <div class="row">
+    <select id="sheet" aria-label="Sheet"></select>
+    <select id="review" aria-label="Review state">
+      <option value="">Any review state</option><option value="none">Not reviewed</option>
+      <option value="ok">OK</option><option value="fix">Fix</option><option value="drop">Drop</option>
+    </select>
+    <select id="bg" aria-label="Preview background">
+      <option value="check">Checker</option><option value="grass">Grass</option><option value="sand">Sand</option><option value="dark">Dark</option>
+    </select>
+    <input id="q" type="search" placeholder="Search id, name, description…" aria-label="Search">
+    <label class="muted">Size <input id="size" type="range" min="120" max="320" value="180" aria-label="Preview size"></label>
+    <span class="spacer"></span>
+    <span class="muted" id="summary"></span>
+    <button id="export">Export QA</button>
+    <button id="clear">Clear</button>
+  </div>
+  <div class="row" id="classes"></div>
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="empty" hidden>No sprites match these filters.</div>
+</main>
+
+<dialog id="dlg">
+  <button class="close" id="dclose" aria-label="Close">✕</button>
+  <div class="dlg">
+    <div class="dlg-l">
+      <div class="big" id="big"><canvas id="cbig"></canvas></div>
+      <div class="legend">Source sheet: this sprite's pixels lit, everything else dimmed; box = <code>src</code>.</div>
+      <canvas id="ctx"></canvas>
+    </div>
+    <div class="dlg-r">
+      <h2 id="dtitle"></h2>
+      <div class="name" id="dname" style="margin-top:4px"></div>
+      <div class="badges" id="dbadges" style="margin-top:6px"></div>
+      <p class="desc" id="ddesc" style="margin-top:10px"></p>
+      <div class="kv">
+        <b>File</b><span id="dfile"></span>
+        <b>Size</b><span id="dsize"></span>
+        <b>Source</b><span id="dsrc"></span>
+        <b>Atlas</b><span id="datlas"></span>
+        <b>Anchor</b><span id="danchor"></span>
+      </div>
+      <div class="qa" id="dqa"></div>
+      <textarea id="dnote" placeholder="Note for the agent, e.g. 'leaf of neighbour plant included at right edge', 'should be class bush', 'anchor too high'"></textarea>
+      <div class="nav"><button id="dprev">← Prev</button><span class="muted" id="dpos"></span><button id="dnext">Next →</button></div>
+    </div>
+  </div>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script src="catalog.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const CAT = window.TILE_CATALOG;
+  if (!CAT) {
+    document.querySelector('main').innerHTML = '<div class="error"><b>catalog.js not found.</b> Open this page from the tiles folder (next to <code>catalog.js</code>, <code>sprites/</code> and <code>atlas/</code>).</div>';
+    return;
+  }
+  const STORE = 'tiles-qa-v3';   // reviews keyed by sheet/name, which survive id renumbering
+  const K = (s) => s.sheet + '/' + s.name;
+  const kOf = (id) => { const s = CAT.sprites.find(x => x.id === id); return s ? K(s) : id; };
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  let qa = {};
+  try { qa = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (e) { qa = {}; }
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(qa)); } catch (e) {} };
+  const toast = (m) => { const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 1800); };
+  const st = { sheet: '', review: '', q: '', classes: new Set(), bg: 'check', size: 180, cur: null, list: [] };
+
+  $('sheet').innerHTML = '<option value="">All sheets</option>' + Object.entries(CAT.sheets).map(([k, s]) =>
+    `<option value="${k}">${esc(k)} — ${esc(s.file)}</option>`).join('');
+  $('classes').innerHTML = '<span class="muted">Class:</span>' + CAT.classes.map(c =>
+    `<button class="chip" data-class="${c.name}" aria-pressed="false" title="${esc(c.description)}">${c.name}</button>`).join('') +
+    '<span class="muted">(none = all)</span>';
+
+  $('sheet').onchange = (e) => { st.sheet = e.target.value; render(); };
+  $('review').onchange = (e) => { st.review = e.target.value; render(); };
+  $('bg').onchange = (e) => { st.bg = e.target.value; render(); };
+  $('q').oninput = (e) => { st.q = e.target.value.trim().toLowerCase(); render(); };
+  $('size').oninput = (e) => { st.size = +e.target.value; render(); };
+  $('classes').onclick = (e) => {
+    const b = e.target.closest('[data-class]'); if (!b) return;
+    const c = b.dataset.class; st.classes.has(c) ? st.classes.delete(c) : st.classes.add(c);
+    b.setAttribute('aria-pressed', st.classes.has(c)); render();
+  };
+
+  function visible() {
+    return CAT.sprites.filter(s => {
+      if (st.sheet && s.sheet !== st.sheet) return false;
+      if (st.classes.size && !st.classes.has(s['class'])) return false;
+      const d = qa[K(s)] && qa[K(s)].status;
+      if (st.review === 'none' && d) return false;
+      if (st.review && st.review !== 'none' && d !== st.review) return false;
+      if (st.q && !(s.id + ' ' + s.name + ' ' + s.description).toLowerCase().includes(st.q)) return false;
+      return true;
+    });
+  }
+  const qaButtons = (d) => ['ok', 'fix', 'drop'].map(v =>
+    `<button data-v="${v}" aria-pressed="${d === v}">${v === 'ok' ? '✓ OK' : v === 'fix' ? '✎ Fix' : '✕ Drop'}</button>`).join('');
+
+  function card(s) {
+    const d = qa[K(s)] && qa[K(s)].status;
+    const scale = Math.max(1, Math.min(4, Math.floor((st.size - 16) / Math.max(s.w, s.h))));
+    const note = qa[K(s)] && qa[K(s)].note ? `<div class="small">✎ ${esc(qa[K(s)].note)}</div>` : '';
+    return `<article class="card ${d ? 'd-' + d : ''}">
+      <div class="preview bg-${st.bg}" data-open="${s.id}" title="Open">
+        <img src="${esc(s.file)}" width="${s.w * scale}" height="${s.h * scale}" alt="${esc(s.name)}" loading="lazy">
+      </div>
+      <div class="meta">
+        <div class="name">${esc(s.name)}</div>
+        <div class="id">${s.id}</div>
+        <div class="badges"><span class="badge cls">${s['class']}</span><span class="badge">${s.w}×${s.h}</span>${s.shadow ? '<span class="badge">shadow</span>' : ''}</div>
+        <p class="desc">${esc(s.description)}</p>${note}
+        <div class="qa" data-id="${s.id}">${qaButtons(d)}</div>
+      </div></article>`;
+  }
+
+  function render() {
+    st.list = visible();
+    $('grid').style.setProperty('--cell', st.size + 'px');
+    $('grid').innerHTML = st.list.map(card).join('');
+    $('empty').hidden = st.list.length > 0;
+    const n = CAT.sprites.filter(s => qa[K(s)] && qa[K(s)].status).length;
+    $('summary').textContent = `${st.list.length} shown · ${n}/${CAT.sprites.length} reviewed`;
+  }
+
+  function setQA(id, v) {
+    id = kOf(id);
+    if (qa[id] && qa[id].status === v) { delete qa[id].status; if (!qa[id].note) delete qa[id]; }
+    else qa[id] = Object.assign({}, qa[id], { status: v, at: new Date().toISOString() });
+    save();
+  }
+  $('grid').addEventListener('click', (e) => {
+    const o = e.target.closest('[data-open]'); if (o) return open(o.dataset.open);
+    const b = e.target.closest('.qa button'); if (!b) return;
+    setQA(b.closest('.qa').dataset.id, b.dataset.v); render();
+  });
+  $('clear').onclick = () => { if (confirm('Clear all review decisions saved in this browser?')) { qa = {}; save(); render(); toast('Cleared'); } };
+  $('export').onclick = () => {
+    const decisions = CAT.sprites.filter(s => qa[K(s)] && qa[K(s)].status).map(s => ({
+      id: s.id, name: s.name, class: s['class'], sheet: s.sheet, file: s.file,
+      src: [s.src.x, s.src.y, s.src.w, s.src.h], description: s.description,
+      decision: qa[K(s)].status, note: qa[K(s)].note || '' }));
+    const out = { schema: 'tiles-qa/2', exported_at: new Date().toISOString(), catalog_generated: CAT.generated, reviewed: decisions.length, total: CAT.sprites.length, decisions };
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' }));
+    a.download = 'tiles-qa.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast(`Exported ${decisions.length} decisions`);
+  };
+
+  // ---- dialog ----
+  const imgCache = {};
+  const load = (src) => imgCache[src] || (imgCache[src] = new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }));
+  const BG = { check: null, grass: '#5b8f3a', sand: '#e6c88a', dark: '#111418' };
+
+  async function open(id) {
+    const s = CAT.sprites.find(x => x.id === id); if (!s) return;
+    st.cur = id;
+    if (!st.list.find(x => x.id === id)) st.list = CAT.sprites;
+    $('dtitle').textContent = s.id; $('dname').textContent = s.name;
+    $('dbadges').innerHTML = `<span class="badge cls">${s['class']}</span><span class="badge">${esc(s.sheet)}</span>${s.shadow ? '<span class="badge">shadow</span>' : ''}`;
+    $('ddesc').textContent = s.description;
+    $('dfile').textContent = s.file;
+    $('dsize').textContent = `${s.w} × ${s.h}`;
+    $('dsrc').textContent = `${CAT.sheets[s.sheet].file}  x ${s.src.x}, y ${s.src.y}, w ${s.src.w}, h ${s.src.h}`;
+    $('datlas').textContent = `${CAT.atlases[s.atlas.index].file}  x ${s.atlas.x}, y ${s.atlas.y}`;
+    $('danchor').textContent = `x ${s.anchor.x}, y ${s.anchor.y}`;
+    const q = qa[K(s)]; $('dqa').innerHTML = qaButtons(q && q.status); $('dqa').dataset.id = id;
+    $('dnote').value = (q && q.note) || '';
+    const i = st.list.findIndex(x => x.id === id); $('dpos').textContent = `${i + 1} / ${st.list.length}`;
+    if (!$('dlg').open) $('dlg').showModal();
+    $('big').className = 'big ' + (st.bg === 'check' ? 'bg-check' : '');
+    $('big').style.background = BG[st.bg] || '';
+
+    const sp = await load(s.file);
+    if (st.cur !== id) return;
+    // enlarged sprite + anchor
+    const box = $('big').clientWidth - 20, k = Math.max(1, Math.min(8, Math.floor(Math.min(box, 420) / Math.max(s.w, s.h))));
+    const c = $('cbig'); c.width = s.w * k; c.height = s.h * k;
+    const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.clearRect(0, 0, c.width, c.height);
+    g.drawImage(sp, 0, 0, c.width, c.height);
+    if (s['class'] !== 'terrain' && s['class'] !== 'water') {
+      const ax = s.anchor.x * k, ay = s.anchor.y * k;
+      g.strokeStyle = '#ff2d2d'; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(ax - 8, ay); g.lineTo(ax + 8, ay); g.moveTo(ax, ay - 8); g.lineTo(ax, ay + 8); g.stroke();
+    }
+    // source context: sheet dimmed, sprite pixels lit, box outlined
+    const sheet = await load(CAT.sheets[s.sheet].file);
+    if (st.cur !== id) return;
+    const pad = 48, x0 = Math.max(0, s.src.x - pad), y0 = Math.max(0, s.src.y - pad);
+    const x1 = Math.min(sheet.width, s.src.x + s.src.w + pad), y1 = Math.min(sheet.height, s.src.y + s.src.h + pad);
+    const kk = Math.max(1, Math.min(4, Math.floor(480 / Math.max(x1 - x0, y1 - y0))));
+    const cc = $('ctx'); cc.width = (x1 - x0) * kk; cc.height = (y1 - y0) * kk;
+    const h = cc.getContext('2d'); h.imageSmoothingEnabled = false;
+    h.fillStyle = '#fff'; h.fillRect(0, 0, cc.width, cc.height);
+    h.globalAlpha = 0.22; h.drawImage(sheet, x0, y0, x1 - x0, y1 - y0, 0, 0, cc.width, cc.height); h.globalAlpha = 1;
+    h.drawImage(sp, (s.src.x - x0) * kk, (s.src.y - y0) * kk, s.w * kk, s.h * kk);
+    h.strokeStyle = '#ff2d2d'; h.lineWidth = 1; h.strokeRect((s.src.x - x0) * kk + .5, (s.src.y - y0) * kk + .5, s.w * kk - 1, s.h * kk - 1);
+  }
+  $('dqa').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; setQA(st.cur, b.dataset.v); open(st.cur); render(); });
+  $('dnote').addEventListener('change', (e) => {
+    const v = e.target.value.trim(), k = kOf(st.cur); qa[k] = Object.assign({}, qa[k], { note: v });
+    if (!v && !qa[k].status) delete qa[k]; save(); render();
+  });
+  const step = (d) => { const i = st.list.findIndex(x => x.id === st.cur); const n = st.list[(i + d + st.list.length) % st.list.length]; if (n) open(n.id); };
+  $('dprev').onclick = () => step(-1); $('dnext').onclick = () => step(1);
+  $('dclose').onclick = () => $('dlg').close();
+  $('dlg').addEventListener('click', (e) => { if (e.target === $('dlg')) $('dlg').close(); });
+  document.addEventListener('keydown', (e) => {
+    if (!$('dlg').open || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowLeft') step(-1);
+    if (e.key === 'ArrowRight') step(1);
+    const m = { o: 'ok', f: 'fix', d: 'drop' }[e.key.toLowerCase()];
+    if (m) { setQA(st.cur, m); open(st.cur); render(); }
+  });
+  render();
+  if (location.hash.length > 1) open(decodeURIComponent(location.hash.slice(1)));   // deep link: lightbox.html#<id>
+})();
+</script>
+</body>
+</html>
