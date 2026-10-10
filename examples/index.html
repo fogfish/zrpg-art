@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZRPG Water Examples</title>
+<link rel="stylesheet" href="examples.css">
+</head>
+<body>
+<main>
+  <header class="page">
+    <h1>Ponds, lakes and rivers</h1>
+    <p>The ZRPG catalogue has no shore or edge autotiles, only a seamless animated water texture (320×128, 21 frames). Water that is placed tile by tile therefore shows hard square edges. These examples paint water and shore in <b>distance bands</b> around a water mask instead, then scatter sprites by distance to the waterline.</p>
+    <p>Pages are for people. Agents should read <a href="WATER-SPEC.md">WATER-SPEC.md</a> for the algorithm and <a href="ponds.md">ponds.md</a>, <a href="lakes.md">lakes.md</a> and <a href="rivers.md">rivers.md</a> for exact recipes. The reference renderer is <a href="water.js">water.js</a>.</p>
+    <nav class="tabs">
+      <a href="index.html" aria-current="page">Overview</a>
+      <a href="ponds.html">Ponds</a>
+      <a href="lakes.html">Lakes</a>
+      <a href="rivers.html">Rivers</a>
+    </nav>
+  </header>
+
+  <div class="matrix" id="matrix">
+    <div></div><div class="h">Grass shore</div><div class="h">Rocky shore</div><div class="h">Sand shore</div>
+  </div>
+
+  <h2 style="margin-top:32px">What makes it look natural</h2>
+  <div class="legend">
+    <div><b>1. Shape is a mask, not tiles</b>Blobs with harmonic wobble, rivers as discs swept along a spline, or a tile grid rounded by blur and threshold.</div>
+    <div><b>2. Signed distance S</b>Every pixel knows how far it is from the waterline. Every band and every decoration is chosen by S.</div>
+    <div><b>3. Bands vary in width</b>Low-frequency noise widens and narrows the shore. High-frequency noise roughens both of its edges.</div>
+    <div><b>4. Bank face (3/4 view)</b>On north banks the ground drops into the water as a 1–6 px earth or stone face with a shadow below it. South banks get a light rim instead.</div>
+    <div><b>5. Shallows and foam</b>Two stepped, dithered shallow tints plus a broken foam line that laps in and out over 4 phases.</div>
+    <div><b>6. Decor straddles the edge</b>Boulders, reeds and stones sit across the waterline with a ripple ring. This hides the seam between water and land.</div>
+  </div>
+</main>
+<script src="../catalog.js"></script>
+<script src="water.js"></script>
+<script src="scenes.js"></script>
+<script>
+(async function () {
+  const m = document.getElementById('matrix');
+  const sprites = await ZRPGWater.load('../');
+  const rows = [['Pond', 'pond-round', 'ponds'], ['Lake', 'lake-island', 'lakes'], ['River', 'river-meander', 'rivers']];
+  for (const [label, id, page] of rows) {
+    const scene = WATER_SCENES.find(s => s.id === id);
+    const rh = document.createElement('div'); rh.className = 'rh'; rh.textContent = label; m.appendChild(rh);
+    for (const shore of ['grass', 'rocky', 'sand']) {
+      const a = document.createElement('a'); a.className = 'cell'; a.href = page + '.html#' + id;
+      a.title = label + ' with ' + shore + ' shore';
+      const c = document.createElement('canvas'); c.width = scene.width; c.height = scene.height;
+      a.appendChild(c); m.appendChild(a);
+      const r = ZRPGWater.build(sprites, scene, shore);
+      const ctx = c.getContext('2d');
+      const tick = t => { r.draw(ctx, t); requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    }
+  }
+})();
+</script>
+</body>
+</html>

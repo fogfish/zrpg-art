@@ -4,6 +4,7 @@ Ready-to-use 2D sprites for a top-down RPG in the browser: 379 objects (trees, b
 
 - `OBJECTS.md` — full list of every sprite (id, class, name, size, description).
 - `lightbox.html` — open in a browser to look at every sprite and review it.
+- `examples/` — how to build natural ponds, lakes and rivers (there are no water-edge tiles): HTML demos for humans, `examples/WATER-SPEC.md` for agents.
 
 ## What to copy into the game
 
@@ -26,7 +27,7 @@ cp -R atlas catalog.json ../my-game/public/assets/tiles/
 **Do not copy:**
 - `ZRPG*.png` — the source sheets. Bounding boxes on them overlap, so cropping a sheet pulls in neighbouring art. Use the exported sprites instead.
 - `ZRPG*.md` — the old, inaccurate specs.
-- `tools/`, `tiles-qa.json`, `lightbox.html` — these are for producing and reviewing the assets, not for running the game.
+- `tools/`, `tiles-qa.json`, `lightbox.html`, `examples/` — these are for producing, reviewing and learning the assets, not for running the game. (`examples/water.js` may be copied if you want the reference water renderer.)
 
 ## Catalogue format
 
