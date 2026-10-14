@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZRPG World Map</title>
+<link rel="stylesheet" href="examples.css">
+<style>
+  body { background: radial-gradient(ellipse at 50% 0%, #1f2a24 0%, #101511 60%, #0b0e0c 100%) fixed; }
+  header.page h1 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-weight: 600; letter-spacing: 0.02em; font-size: 30px; color: #efe3c4; }
+  .frame { position: relative; padding: 10px; border-radius: 6px; background: linear-gradient(145deg, #c9a45c, #7d5f2a 45%, #e3c27a 70%, #8a6a30);
+           box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 2px 0 rgba(255,240,200,0.15) inset; }
+  .frame .inner { border: 2px solid #3a2c12; outline: 1px solid rgba(255,236,190,0.55); outline-offset: -5px; background: #0d100e; overflow: hidden; }
+  .frame canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+  .frame .wait { color: #c9b27f; padding: 120px 0; text-align: center; margin: 0; font-family: Georgia, serif; font-style: italic; }
+  .controls { margin-top: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <header class="page">
+    <h1>World map</h1>
+    <p>The arcade world map (<a href="../world_map.jpg">world_map.jpg</a>) rebuilt only from catalogue sprites as one static image: Lake Joy and Lake Byte joined through a swamp, the river running in from the north and out to the south, trampled-grass trails, a sand beach that turns into a rocky desert, forests, mountains and a few monsters. Towns, the market and the castle are not in the library and are left out; a single tent marks Pixel Town.</p>
+    <p>Data and renderer: <a href="world.js">world.js</a>; agent spec: <a href="WORLD-SPEC.md">WORLD-SPEC.md</a>. Drawn at 2× the reference image (2752 × 1536 px).</p>
+    <nav class="tabs">
+      <a href="index.html">Water</a>
+      <a href="terrain.html">Terrain</a>
+      <a href="world.html" aria-current="page">World map</a>
+    </nav>
+  </header>
+  <div class="frame"><div class="inner stage-box"><p class="wait">Drawing the map…</p><canvas hidden></canvas></div></div>
+  <div class="controls">
+    <button type="button" class="plain" data-act="seed">New variation</button>
+    <a href="world.html" data-act="full">Open the canvas at 1:1</a>
+    <span class="meta"></span>
+  </div>
+</main>
+<script src="../catalog.js"></script>
+<script src="water.js"></script>
+<script src="terrain.js"></script>
+<script src="world.js"></script>
+<script>
+(async function () {
+  const stage = document.querySelector('.stage-box'), canvas = stage.querySelector('canvas'), wait = stage.querySelector('.wait');
+  const meta = document.querySelector('.meta');
+  let lib;
+  try {
+    lib = await ZRPGWorld.load('../');
+  } catch (e) {
+    wait.className = 'err';
+    wait.textContent = e.message + '\nOpen this page from the examples/ folder of the zrpg-art repo, so that ../catalog.js and ../atlas/ resolve.';
+    return;
+  }
+  let world, seed = 1;
+  const ctx = canvas.getContext('2d');
+  function rebuild() {
+    const t0 = performance.now();
+    world = ZRPGWorld.build(lib, { seed });
+    canvas.width = world.width; canvas.height = world.height;
+    world.draw(ctx);
+    canvas.hidden = false; wait.hidden = true;
+    meta.textContent = `seed ${seed} · ${world.stats.sprites} sprites · built in ${Math.round(performance.now() - t0)} ms`;
+  }
+  // let the page paint "Building…" first; the map is static, so it is drawn once
+  requestAnimationFrame(() => setTimeout(rebuild, 30));
+  document.querySelector('[data-act=seed]').addEventListener('click', () => {
+    seed = 1 + Math.floor(Math.random() * 9999); wait.hidden = false; setTimeout(rebuild, 30);
+  });
+  document.querySelector('[data-act=full]').addEventListener('click', e => {
+    e.preventDefault(); const one = !canvas.style.width; canvas.style.width = one ? world.width + 'px' : '';
+    canvas.style.maxWidth = one ? 'none' : ''; stage.style.overflow = one ? 'auto' : 'hidden';
+  });
+})();
+</script>
+</body>
+</html>

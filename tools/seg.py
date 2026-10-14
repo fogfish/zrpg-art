@@ -4,12 +4,13 @@ from scipy import ndimage as ndi
 
 import os
 T = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/'   # tiles folder
+O = T + 'origin/'                                                        # source sheets (ZRPG*.png)
 S = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.cache') + '/'   # intermediates
 os.makedirs(S, exist_ok=True)
 EIGHT = np.ones((3, 3), bool)
 
 def load(f):
-    return np.array(Image.open(T + f).convert('RGBA'))
+    return np.array(Image.open(O + f).convert('RGBA'))
 
 def segment(a, gap=1, min_area=6):
     """Return label image: body components (grouped by `gap` px dilation), shadows attached to touching body."""
@@ -74,7 +75,7 @@ def boxes(lab):
     return res
 
 def overlay(f, lab, out, scale=1, region=None):
-    im = Image.open(T + f).convert('RGBA')
+    im = Image.open(O + f).convert('RGBA')
     bg = Image.new('RGBA', im.size, (255, 255, 255, 255)); bg.alpha_composite(im)
     if region:
         x0, y0, x1, y1 = region; bg = bg.crop(region)

@@ -15,7 +15,7 @@ Lakes are large water bodies, about 300–500 px across at 1×, usually wider th
 
 Composition:
 - Open water should be **visible**. Decor only runs around the edge, so a lake's centre is plain animated texture with shallow steps near the shore. That is intended.
-- Rocky lakes get 1–2 large outcrops (`rocks2-rock-037/038`), which only appear in the `lakes` group. They anchor the composition.
+- Rocky lakes get 1–2 large outcrops (`rocks2-rock-076/038`), which only appear in the `lakes` group. They anchor the composition.
 - If the lake runs past the canvas, still keep its body in data beyond the edge. Distances near the canvas border then stay correct (padding is 48 px; for larger overlaps render the whole map mask).
 
 ---

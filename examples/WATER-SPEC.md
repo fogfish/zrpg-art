@@ -28,19 +28,19 @@ Every number below is copied from `water.js`. If you change one, change both.
 | Role | Sprite id(s) | Size | Notes |
 |---|---|---|---|
 | Water texture | `water-water-001` … `021` | 320×128 | Seamless **in both axes** (checked: seam difference equals the in-texture difference). 21 frames at 6 fps (`catalog.animations.water`). |
-| Ground grass (light) | `rocks2-terrain-014` | 64×64 | Seamless. Base ground in every example. |
-| Lush grass (dark) | `rocks2-terrain-020` | 64×64 | Seamless. Grass shore rim. |
-| Sand | `beach-terrain-026` (`sand_strip_b`) | 96×32 | Seamless and fully opaque. Sand shore and sand bank face. |
-| Gravel | `beach-terrain-007` (`gravel_tile_hole`) | 64×64 | Has a centre hole: use **hole fill** (§3.1). Rocky shore; dirt bank face (tinted). |
-| Stones | `rocks2-terrain-012` (`stone_tile_hole`) | 64×64 | Has small holes: use hole fill. Inner rocky band; rocky bank face. |
+| Ground grass (light) | `rocks2-terrain-052` | 64×64 | Seamless. Base ground in every example. |
+| Lush grass (dark) | `rocks2-terrain-066` | 64×64 | Seamless. Grass shore rim. |
+| Sand | `beach-terrain-083` (`sand_strip_b`) | 96×32 | Seamless and fully opaque. Sand shore and sand bank face. |
+| Gravel | `beach-terrain-017` (`gravel_tile_hole`) | 64×64 | Has a centre hole: use **hole fill** (§3.1). Rocky shore; dirt bank face (tinted). |
+| Stones | `rocks2-terrain-050` (`stone_tile_hole`) | 64×64 | Has small holes: use hole fill. Inner rocky band; rocky bank face. |
 | Reeds | `beach-plant-003`, `beach-plant-002` | 96×127, 64×96 | Rectangular blocks. Do not place them raw; clip them to a reed-bed shape (§6.3). |
 
 Do **not** use these for water edges:
-- The 32×32 tiles `rocks2-terrain-004..007` are flat single colours.
+- The 32×32 tiles `rocks2-terrain-026..007` are flat single colours.
 - `trees-terrain-002/003/009/011`, the dark teal patches, clash with the light ground.
 - `beach-rock-013/017` (`sand_pebbles_set_*`) are tall scatter sets whose art reaches about 57 px above the anchor, so they end up drawn over the water.
 - `jungle-plant-009` reads as a dead tree, not a cattail.
-- `sand_ring_*`, `sand_pit_*` and `sand_crater_*` are craters, not shores.
+- `sand_ring_*` and `sand_pit_*` are 9-slice ground tilesets (see the main README), and `sand_crater_*` are craters. None of them are shores.
 
 ---
 
@@ -153,21 +153,21 @@ In a game with moving actors, merge the decor sprites into the normal y-sorted s
 
 ## 4. Shore styles
 
-Shared by all styles: ground `rocks2-terrain-014`, plus meadow flowers `trees-plant-001/002/003` at `S ≥ 40`, `per100: 0.8`, `spacing: 22`.
+Shared by all styles: ground `rocks2-terrain-052`, plus meadow flowers `trees-plant-001/002/003` at `S ≥ 40`, `per100: 0.8`, `spacing: 22`.
 
 ### 4.1 Sand
 
 | Item | Value |
 |---|---|
 | shoreWidth | 10–24 px; edgeRag 1.0; outerRag 3.5 |
-| bands | `beach-terrain-026` to the outer edge ▸ wet sand `rgba(120,72,28,0.30)` for `S < 4` (rag 1.5) |
-| face | h 1–2 px, `beach-terrain-026` + `rgba(110,62,18,0.55)`. Beaches are low. |
+| bands | `beach-terrain-083` to the outer edge ▸ wet sand `rgba(120,72,28,0.30)` for `S < 4` (rag 1.5) |
+| face | h 1–2 px, `beach-terrain-083` + `rgba(110,62,18,0.55)`. Beaches are low. |
 | water | tint `rgba(30,150,175,0.22)`; shallows `10 px rgba(90,205,210,0.28)`, `4.5 px rgba(160,235,220,0.32)`; shadow 1 px `rgba(0,20,50,0.25)`; rim `rgba(250,252,255,0.9)`; foam `rgba(240,250,255,0.75)`, spread 1.3 |
 
 | Decor | Sprite ids | Band | per100 | spacing | clear |
 |---|---|---|---|---|---|
-| sand clumps (ground decal) | `beach-terrain-016..019` | t 0.95–1.25 | 2.6 | 9 | – |
-| sand splat (ground decal) | `beach-terrain-006` | t 0.9–1.15 | 0.5 | 40 | – |
+| sand clumps (ground decal) | `beach-terrain-049..019` | t 0.95–1.25 | 2.6 | 9 | – |
+| sand splat (ground decal) | `beach-terrain-016` | t 0.9–1.15 | 0.5 | 40 | – |
 | shells | `beach-prop-001,003,004,005,006,007,009,010,013,015,017,019,022,023` | t 0.15–0.85 | 1.3 | 16 | – |
 | pebbles | `beach-rock-001,002,004..012` | t 0–0.45 | 1.8 | 9 | – |
 | grass sprigs | `beach-plant-004,005,006,007,008,010,011,012` | t 1.0–1.6 | 3.2 | 7 | – |
@@ -179,21 +179,21 @@ Shared by all styles: ground `rocks2-terrain-014`, plus meadow flowers `trees-pl
 | Item | Value |
 |---|---|
 | shoreWidth | 6–14 px; edgeRag 1.6; outerRag 3 |
-| bands | gravel `beach-terrain-007` (hole fill) to the outer edge ▸ stones `rocks2-terrain-012` (hole fill) for `S < 0.5·Wsh` (rag 2) ▸ wet `rgba(20,30,50,0.30)` for `S < 3` |
-| face | h 3–6 px, `rocks2-terrain-012` + `rgba(15,22,40,0.50)` |
+| bands | gravel `beach-terrain-017` (hole fill) to the outer edge ▸ stones `rocks2-terrain-050` (hole fill) for `S < 0.5·Wsh` (rag 2) ▸ wet `rgba(20,30,50,0.30)` for `S < 3` |
+| face | h 3–6 px, `rocks2-terrain-050` + `rgba(15,22,40,0.50)` |
 | water | no tint; shallows `6 px rgba(70,165,190,0.25)`, `2.5 px rgba(120,200,215,0.25)`; shadow 3 px `rgba(0,15,45,0.32)`; rim `rgba(235,245,255,0.8)`; foam `rgba(235,245,255,0.6)`, spread 0.9 |
 
 | Decor | Sprite ids | Band | per100 | spacing | clear | other |
 |---|---|---|---|---|---|---|
-| gravel splats (ground) | `beach-terrain-008` | t 0.9–1.15 | 1.0 | 26 | – | |
-| rubble strips (ground) | `rocks2-terrain-021, 024` | t 0.85–1.2 | 0.35 | 60 | – | |
-| outcrops | `rocks2-rock-037, 038` | S −8…4 | 0.1 | 220 | 40 | ripple; **lakes only** |
-| waterline boulders | `rocks2-rock-016,017,018,008,009` | S −5…3 | 2.0 | 18 | 7 | ripple; cluster 1–3 within 12 px |
-| low rocks | `rocks2-rock-011,014,007,010` | S −1…8 | 1.0 | 16 | 5 | |
-| rocks in water | `rocks2-rock-011,018,016,013` | S −16…−6 | 0.3 | 36 | 8 | ripple |
-| pebbles | `rocks2-rock-012,013,015,043,045`, `beach-rock-003,007` | t 0.05–0.95 | 3.0 | 8 | – | |
-| crumbs | `rocks2-rock-042, 044` | t 0.3–1.0 | 0.45 | 36 | – | |
-| rock clusters on grass | `rocks2-rock-004,005,006` | t 1.0–1.7 | 0.7 | 26 | 6 | |
+| gravel splats (ground) | `beach-terrain-018` | t 0.9–1.15 | 1.0 | 26 | – | |
+| rubble strips (ground) | `rocks2-terrain-067, 024` | t 0.85–1.2 | 0.35 | 60 | – | |
+| outcrops | `rocks2-rock-076, 038` | S −8…4 | 0.1 | 220 | 40 | ripple; **lakes only** |
+| waterline boulders | `rocks2-rock-045,017,018,008,009` | S −5…3 | 2.0 | 18 | 7 | ripple; cluster 1–3 within 12 px |
+| low rocks | `rocks2-rock-040,014,007,010` | S −1…8 | 1.0 | 16 | 5 | |
+| rocks in water | `rocks2-rock-040,018,016,013` | S −16…−6 | 0.3 | 36 | 8 | ripple |
+| pebbles | `rocks2-rock-041,013,015,043,045`, `beach-rock-003,007` | t 0.05–0.95 | 3.0 | 8 | – | |
+| crumbs | `rocks2-rock-081, 044` | t 0.3–1.0 | 0.45 | 36 | – | |
+| rock clusters on grass | `rocks2-rock-033,005,006` | t 1.0–1.7 | 0.7 | 26 | 6 | |
 | grass tufts | `trees-plant-006, 007` | t 1.05–1.8 | 0.9 | 20 | – | |
 
 ### 4.3 Grass
@@ -201,14 +201,14 @@ Shared by all styles: ground `rocks2-terrain-014`, plus meadow flowers `trees-pl
 | Item | Value |
 |---|---|
 | shoreWidth | 4–11 px (a lush rim, not a beach); edgeRag 1.2; outerRag 4 |
-| bands | lush grass `rocks2-terrain-020` to the outer edge ▸ mud line `rgba(72,58,22,0.55)` for `S < 1.8` (rag 1.0) |
-| face | h 2–4 px, gravel `beach-terrain-007` (hole fill) + `rgba(66,40,12,0.60)`, which reads as earth |
+| bands | lush grass `rocks2-terrain-066` to the outer edge ▸ mud line `rgba(72,58,22,0.55)` for `S < 1.8` (rag 1.0) |
+| face | h 2–4 px, gravel `beach-terrain-017` (hole fill) + `rgba(66,40,12,0.60)`, which reads as earth |
 | water | tint `rgba(30,110,80,0.24)` (green, murky); shallows `6 px rgba(70,150,110,0.28)`, `2.5 px rgba(110,170,110,0.30)`; shadow 2 px `rgba(0,25,30,0.32)`; rim `rgba(205,235,210,0.45)`; foam `rgba(220,240,225,0.32)`, spread 0.8 |
 
 | Decor | Sprite ids | Band | per100 | spacing | clear | other |
 |---|---|---|---|---|---|---|
 | reed beds | clipped `beach-plant-003` / `002` (§6.3) | S −5…1 | 0.32 | 56 | 16 | ripple; rx 9–20, ry 4–7, height 14–26 |
-| waterline stones | `rocks2-rock-013, 011` | S −2…2 | 0.35 | 40 | 5 | ripple |
+| waterline stones | `rocks2-rock-042, 011` | S −2…2 | 0.35 | 40 | 5 | ripple |
 | mossy log | `jungle-prop-007` | S −3…3 | 0.05 | 400 | 14 | ripple; max 1; shoreline ≥ 900 px |
 | tufts | `trees-plant-006, 007`, `jungle-plant-011`, `beach-plant-015` | t 0–1.3 | 3.6 | 10 | 3 | |
 | sprigs | `beach-plant-004,005,006,007,008,010,011,012` | t 0.2–1.8 | 3.0 | 7 | – | |

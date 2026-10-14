@@ -163,15 +163,15 @@
   const STYLES = {
     sand: {
       label: 'Sand',
-      ground: 'rocks2-terrain-014',
+      ground: 'rocks2-terrain-052',
       shoreWidth: [10, 24],      // band width range, varied by low-frequency noise
       edgeRag: 1.0,              // waterline wobble (px)
       outerRag: 3.5,             // outer shore edge wobble (px)
       bands: [
-        { name: 'sand', tex: 'beach-terrain-026', to: 1 },                          // to: in Wsh units
+        { name: 'sand', tex: 'beach-terrain-083', to: 1 },                          // to: in Wsh units
         { name: 'wet sand', color: 'rgba(120,72,28,0.30)', toPx: 4, rag: 1.5 },
       ],
-      face: { h: [1, 2], tex: 'beach-terrain-026', tint: 'rgba(110,62,18,0.55)' },
+      face: { h: [1, 2], tex: 'beach-terrain-083', tint: 'rgba(110,62,18,0.55)' },
       water: {
         tint: 'rgba(30,150,175,0.22)',
         shallow: [[10, 'rgba(90,205,210,0.28)'], [4.5, 'rgba(160,235,220,0.32)']],
@@ -180,8 +180,8 @@
         foam: 'rgba(240,250,255,0.75)', foamSpread: 1.3,
       },
       decor: [
-        { name: 'sand clumps', layer: 'ground', ids: ['beach-terrain-016', 'beach-terrain-017', 'beach-terrain-018', 'beach-terrain-019'], t: [0.95, 1.25], per100: 2.6, spacing: 9 },
-        { name: 'sand splat', layer: 'ground', ids: ['beach-terrain-006'], t: [0.9, 1.15], per100: 0.5, spacing: 40 },
+        { name: 'sand clumps', layer: 'ground', ids: ['beach-terrain-049', 'beach-terrain-050', 'beach-terrain-051', 'beach-terrain-052'], t: [0.95, 1.25], per100: 2.6, spacing: 9 },
+        { name: 'sand splat', layer: 'ground', ids: ['beach-terrain-016'], t: [0.9, 1.15], per100: 0.5, spacing: 40 },
         { name: 'shells', ids: SAND_SHELLS, t: [0.15, 0.85], per100: 1.3, spacing: 16 },
         { name: 'pebbles', ids: SMALL_PEBBLES, t: [0.0, 0.45], per100: 1.8, spacing: 9 },
         { name: 'grass sprigs', ids: GRASS_SPRIGS, t: [1.0, 1.6], per100: 3.2, spacing: 7 },
@@ -191,16 +191,16 @@
     },
     rocky: {
       label: 'Rocky',
-      ground: 'rocks2-terrain-014',
+      ground: 'rocks2-terrain-052',
       shoreWidth: [6, 14],
       edgeRag: 1.6,
       outerRag: 3,
       bands: [
-        { name: 'gravel', tex: 'beach-terrain-007', fillHoles: true, to: 1 },
-        { name: 'stones', tex: 'rocks2-terrain-012', fillHoles: true, to: 0.5, rag: 2 },
+        { name: 'gravel', tex: 'beach-terrain-017', fillHoles: true, to: 1 },
+        { name: 'stones', tex: 'rocks2-terrain-050', fillHoles: true, to: 0.5, rag: 2 },
         { name: 'wet stones', color: 'rgba(20,30,50,0.30)', toPx: 3, rag: 1.2 },
       ],
-      face: { h: [3, 6], tex: 'rocks2-terrain-012', fillHoles: true, tint: 'rgba(15,22,40,0.50)' },
+      face: { h: [3, 6], tex: 'rocks2-terrain-050', fillHoles: true, tint: 'rgba(15,22,40,0.50)' },
       water: {
         tint: null,
         shallow: [[6, 'rgba(70,165,190,0.25)'], [2.5, 'rgba(120,200,215,0.25)']],
@@ -209,29 +209,29 @@
         foam: 'rgba(235,245,255,0.6)', foamSpread: 0.9,
       },
       decor: [
-        { name: 'gravel splats', layer: 'ground', ids: ['beach-terrain-008'], t: [0.9, 1.15], per100: 1.0, spacing: 26 },
-        { name: 'rubble strips', layer: 'ground', ids: ['rocks2-terrain-021', 'rocks2-terrain-024'], t: [0.85, 1.2], per100: 0.35, spacing: 60 },
-        { name: 'outcrops', ids: ['rocks2-rock-037', 'rocks2-rock-038'], s: [-8, 4], per100: 0.1, spacing: 220, clear: 40, ripple: true, groups: ['lakes'] },
-        { name: 'waterline boulders', ids: ['rocks2-rock-016', 'rocks2-rock-017', 'rocks2-rock-018', 'rocks2-rock-008', 'rocks2-rock-009'], s: [-5, 3], per100: 2.0, spacing: 18, clear: 7, ripple: true, cluster: [1, 3, 12] },
-        { name: 'low rocks', ids: ['rocks2-rock-011', 'rocks2-rock-014', 'rocks2-rock-007', 'rocks2-rock-010'], s: [-1, 8], per100: 1.0, spacing: 16, clear: 5 },
-        { name: 'rocks in water', ids: ['rocks2-rock-011', 'rocks2-rock-018', 'rocks2-rock-016', 'rocks2-rock-013'], s: [-16, -6], per100: 0.3, spacing: 36, clear: 8, ripple: true },
-        { name: 'pebbles', ids: ['rocks2-rock-012', 'rocks2-rock-013', 'rocks2-rock-015', 'rocks2-rock-043', 'rocks2-rock-045', 'beach-rock-003', 'beach-rock-007'], t: [0.05, 0.95], per100: 3.0, spacing: 8 },
-        { name: 'crumbs', ids: ['rocks2-rock-042', 'rocks2-rock-044'], t: [0.3, 1.0], per100: 0.45, spacing: 36 },
-        { name: 'rock clusters on grass', ids: ['rocks2-rock-004', 'rocks2-rock-005', 'rocks2-rock-006'], t: [1.0, 1.7], per100: 0.7, spacing: 26, clear: 6 },
+        { name: 'gravel splats', layer: 'ground', ids: ['beach-terrain-018'], t: [0.9, 1.15], per100: 1.0, spacing: 26 },
+        { name: 'rubble strips', layer: 'ground', ids: ['rocks2-terrain-067', 'rocks2-terrain-078'], t: [0.85, 1.2], per100: 0.35, spacing: 60 },
+        { name: 'outcrops', ids: ['rocks2-rock-076', 'rocks2-rock-077'], s: [-8, 4], per100: 0.1, spacing: 220, clear: 40, ripple: true, groups: ['lakes'] },
+        { name: 'waterline boulders', ids: ['rocks2-rock-045', 'rocks2-rock-046', 'rocks2-rock-047', 'rocks2-rock-037', 'rocks2-rock-038'], s: [-5, 3], per100: 2.0, spacing: 18, clear: 7, ripple: true, cluster: [1, 3, 12] },
+        { name: 'low rocks', ids: ['rocks2-rock-040', 'rocks2-rock-043', 'rocks2-rock-036', 'rocks2-rock-039'], s: [-1, 8], per100: 1.0, spacing: 16, clear: 5 },
+        { name: 'rocks in water', ids: ['rocks2-rock-040', 'rocks2-rock-047', 'rocks2-rock-045', 'rocks2-rock-042'], s: [-16, -6], per100: 0.3, spacing: 36, clear: 8, ripple: true },
+        { name: 'pebbles', ids: ['rocks2-rock-041', 'rocks2-rock-042', 'rocks2-rock-044', 'rocks2-rock-082', 'rocks2-rock-084', 'beach-rock-003', 'beach-rock-007'], t: [0.05, 0.95], per100: 3.0, spacing: 8 },
+        { name: 'crumbs', ids: ['rocks2-rock-081', 'rocks2-rock-083'], t: [0.3, 1.0], per100: 0.45, spacing: 36 },
+        { name: 'rock clusters on grass', ids: ['rocks2-rock-033', 'rocks2-rock-034', 'rocks2-rock-035'], t: [1.0, 1.7], per100: 0.7, spacing: 26, clear: 6 },
         { name: 'grass tufts', ids: ['trees-plant-006', 'trees-plant-007'], t: [1.05, 1.8], per100: 0.9, spacing: 20 },
       ],
     },
     grass: {
       label: 'Grass',
-      ground: 'rocks2-terrain-014',
+      ground: 'rocks2-terrain-052',
       shoreWidth: [4, 11],       // lush darker-grass rim
       edgeRag: 1.2,
       outerRag: 4,
       bands: [
-        { name: 'lush grass', tex: 'rocks2-terrain-020', to: 1 },
+        { name: 'lush grass', tex: 'rocks2-terrain-066', to: 1 },
         { name: 'mud line', color: 'rgba(72,58,22,0.55)', toPx: 1.8, rag: 1.0 },
       ],
-      face: { h: [2, 4], tex: 'beach-terrain-007', fillHoles: true, tint: 'rgba(66,40,12,0.60)' },
+      face: { h: [2, 4], tex: 'beach-terrain-017', fillHoles: true, tint: 'rgba(66,40,12,0.60)' },
       water: {
         tint: 'rgba(30,110,80,0.24)',
         shallow: [[6, 'rgba(70,150,110,0.28)'], [2.5, 'rgba(110,170,110,0.30)']],
@@ -241,7 +241,7 @@
       },
       decor: [
         { name: 'reed beds', kind: 'reedbed', s: [-5, 1], per100: 0.32, spacing: 56, clear: 16, ripple: true, rx: [9, 20], ry: [4, 7], height: [14, 26] },
-        { name: 'waterline stones', ids: ['rocks2-rock-013', 'rocks2-rock-011'], s: [-2, 2], per100: 0.35, spacing: 40, clear: 5, ripple: true },
+        { name: 'waterline stones', ids: ['rocks2-rock-042', 'rocks2-rock-040'], s: [-2, 2], per100: 0.35, spacing: 40, clear: 5, ripple: true },
         { name: 'mossy log', ids: ['jungle-prop-007'], s: [-3, 3], per100: 0.05, spacing: 400, clear: 14, ripple: true, max: 1, minPerimeter: 900 },
         { name: 'tufts', ids: ['trees-plant-006', 'trees-plant-007', 'jungle-plant-011', 'beach-plant-015'], t: [0.0, 1.3], per100: 3.6, spacing: 10, clear: 3 },
         { name: 'sprigs', ids: GRASS_SPRIGS, t: [0.2, 1.8], per100: 3.0, spacing: 7 },
@@ -561,6 +561,7 @@
 
     return {
       width: W, height: H, stats, decor,
+      sdf: S,   // signed distance to the waterline per pixel (y * W + x): < 0 in water, > 0 on land
       draw(ctx, t, opts) {
         opts = opts || {};
         ctx.imageSmoothingEnabled = false;
@@ -611,6 +612,7 @@
       const mine = [];
       const ok = (x, y) => {
         if (x < 4 || y < 6 || x >= W - 4 || y >= H - 2 || !inBand((y | 0) * W + (x | 0))) return false;
+        if (scene.decorFilter && !scene.decorFilter(x, y, rule)) return false;   // optional: caller vetoes spots
         for (const p of mine) if (Math.hypot(p.x - x, p.y - y) < rule.spacing) return false;
         if (rule.clear) for (const p of placed) if (p.clear && Math.hypot(p.x - x, p.y - y) < rule.clear + p.clear) return false;
         return true;

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZRPG Terrain Tilesets</title>
+<link rel="stylesheet" href="examples.css">
+<style>
+  .stage canvas { max-width: 100%; }
+  .card .roles { color: var(--muted); font-size: 13px; margin-top: 8px; word-break: break-word; }
+</style>
+</head>
+<body>
+<main>
+  <header class="page">
+    <h1>Sand, rock and grass terrain</h1>
+    <p>Mesas, ground patches, pits and rings are 9-slice <b>tilesets</b>: corners, edges that repeat along each side, and a fill that repeats inside, all cut on the 32 px grid. Change the centre size of any card to see the same pieces build a bigger or smaller area. Tilesets marked <i>hole</i> have no fill, so the ground below shows through.</p>
+    <p>Data: <code>catalog.tilesets</code>. Renderer: <a href="terrain.js">terrain.js</a> (<code>ZRPGTerrain.load / draw / size</code>).</p>
+    <nav class="tabs">
+      <a href="index.html">Water</a>
+      <a href="terrain.html" aria-current="page">Terrain</a>
+      <a href="world.html">World map</a>
+    </nav>
+  </header>
+  <div id="cards"></div>
+</main>
+<script src="../catalog.js"></script>
+<script src="terrain.js"></script>
+<script>
+(async function () {
+  const root = document.getElementById('cards');
+  let terrain;
+  try {
+    terrain = await ZRPGTerrain.load('../');
+  } catch (e) {
+    root.innerHTML = '<p class="err"></p>';
+    root.firstChild.textContent = e.message + '\nOpen this page from the examples/ folder of the zrpg-art repo, so that ../catalog.js and ../atlas/ resolve.';
+    return;
+  }
+  const SCALE = 2;
+  const canvasFor = (stage, w, h) => {
+    const c = stage.querySelector('canvas');
+    c.width = w; c.height = h; c.style.width = (w * SCALE) + 'px';
+    const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = false;
+    return ctx;
+  };
+  const card = (title, desc) => {
+    const el = document.createElement('section');
+    el.className = 'card';
+    el.innerHTML = '<h2></h2><p class="desc"></p><div class="stage"><canvas></canvas></div>';
+    el.querySelector('h2').textContent = title;
+    el.querySelector('.desc').textContent = desc;
+    root.appendChild(el);
+    return el;
+  };
+
+  // A scene made only from tilesets, each at a size that is not in the source sheets.
+  const scene = card('Scene', 'Grass base, then tilesets at new sizes: sand pit 4×2, gravel 3×1, grass patch 4×2, mesa 4×1, overgrown cobble 3×2, sand ring 2×1 (hole).');
+  const sctx = canvasFor(scene.querySelector('.stage'), 704, 448);
+  terrain.fill(sctx, 'rocks2', 'grass_tile_light', 0, 0, 704, 448);
+  terrain.draw(sctx, 'sand_pit_dark_large', 32, 32, 4, 2);
+  terrain.draw(sctx, 'gravel_patch_round', 256, 32, 3, 1);
+  terrain.draw(sctx, 'grass_patch_octagon', 448, 32, 4, 2);
+  terrain.draw(sctx, 'cobble_overgrown', 352, 256, 3, 2);
+  terrain.draw(sctx, 'sand_ring_tile', 544, 256, 2, 1);
+  terrain.draw(sctx, 'mesa_solid', 32, 192, 4, 1);
+
+  for (const t of terrain.cat.tilesets) {
+    const el = card(t.name, t.description + (t.hole ? ' (hole)' : ''));
+    const nat = terrain.natural(t.name);
+    let nx = nat.nx, ny = nat.ny;
+    const ctl = document.createElement('div'); ctl.className = 'controls';
+    ctl.innerHTML = `
+      <div class="seg" role="group" aria-label="Width"><button type="button" data-d="x-">− W</button><button type="button" data-d="x+">+ W</button></div>
+      <div class="seg" role="group" aria-label="Height"><button type="button" data-d="y-">− H</button><button type="button" data-d="y+">+ H</button></div>
+      <button type="button" class="plain" data-d="reset">Original size</button>
+      <span class="meta"></span>`;
+    el.appendChild(ctl);
+    const roles = document.createElement('div'); roles.className = 'roles';
+    roles.textContent = Object.entries(t.pieces).map(([r, ids]) => r + ': ' + ids.join(', ')).join(' · ');
+    el.appendChild(roles);
+    const meta = ctl.querySelector('.meta');
+    const render = () => {
+      const z = terrain.size(t.name, nx, ny), pad = 16;
+      const ctx = canvasFor(el.querySelector('.stage'), z.w + pad * 2, z.h + pad * 2);
+      terrain.fill(ctx, 'rocks2', 'grass_tile_light', 0, 0, z.w + pad * 2, z.h + pad * 2);
+      terrain.draw(ctx, t.name, pad, pad, nx, ny);
+      meta.textContent = `${t.sheet} · centre ${z.nx}×${z.ny} cells · ${z.w}×${z.h} px`;
+    };
+    ctl.querySelectorAll('[data-d]').forEach(b => b.addEventListener('click', () => {
+      const d = b.dataset.d;
+      if (d === 'reset') { nx = nat.nx; ny = nat.ny; }
+      if (d === 'x+' && t.cols[1]) nx = Math.min(nx + 1, 12);
+      if (d === 'x-') nx = Math.max(nx - 1, 0);
+      if (d === 'y+' && t.rows[1]) ny = Math.min(ny + 1, 8);
+      if (d === 'y-') ny = Math.max(ny - 1, 0);
+      render();
+    }));
+    render();
+  }
+})();
+</script>
+</body>
+</html>

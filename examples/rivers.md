@@ -51,7 +51,7 @@ Natural river features, all automatic from the bend bias (`bias = clamp(1 + 1.1�
 - Tight, looping bends: a brook can double back (`[110,236] → [60,170] → [120,110]`).
 - `density: 0.5` halves every decor count. Without it, waterline boulders hide the water.
 - The bank face is capped at `floor(RUN × 0.3)`. On a 16 px brook the face is at most about 4 px, so the channel stays readable.
-- Outcrops (`rocks2-rock-037/038`) are excluded: that rule is limited to the `lakes` group.
+- Outcrops (`rocks2-rock-076/038`) are excluded: that rule is limited to the `lakes` group.
 
 <a id="river-confluence"></a>
 ## river-confluence — Confluence (default: sand)

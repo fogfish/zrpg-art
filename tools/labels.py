@@ -1,4 +1,5 @@
 # Per-sheet labels in reading order (contact.sprites order). Each line: class | name | description
+# A tileset (build.CONF[...]["tilesets"]) is one line; export.py expands it into <name>_<role>[<n>] pieces.
 TREES = """
 tree|oak_large_a|Large oak tree with wide cast shadow
 tree|oak_medium_a|Medium oak tree with cast shadow
@@ -72,9 +73,9 @@ tree|oak_small_d|Small oak tree with shadow
 tree|pine_sapling|Pine sapling with shadow
 """
 ROCKS2 = """
-rock|mesa_hollow_open|Circular mesa with transparent hollow centre and grass rim, with shadow
-rock|mesa_solid|Circular mesa with solid gravel top, with shadow
-rock|mesa_solid_fog|Circular mesa with gravel top and fog-faded base
+rock|mesa_hollow_open|Mesa ring with grassy inner rim and open (transparent) centre, cliff face and shadow
+rock|mesa_solid|Mesa with gravel top, cliff face and shadow
+rock|mesa_solid_fog|Mesa with gravel top and fog-faded cliff face
 rock|rock_cluster_grass_a|Small rock cluster on grass
 rock|rock_cluster_grass_b|Small rock cluster on grass
 rock|rock_cluster_grass_c|Small rock cluster on grass
@@ -103,7 +104,7 @@ rock|pillar_5|Narrow rock pillar with cast shadow
 rock|pillar_6|Narrow rock pillar with cast shadow
 rock|pillar_7|Narrow rock pillar with cast shadow
 rock|pillar_8|Narrow rock pillar with cast shadow
-rock|plateau_tall|Standalone tall circular plateau with layered cliffs
+rock|plateau_tall|Plateau with gravel top and layered cliff face
 rock|outcrop_medium|Medium rock outcrop
 rock|outcrop_medium_shadow|Medium rock outcrop with cast shadow
 rock|outcrop_medium_grass|Medium rock outcrop merged with grass
@@ -113,9 +114,9 @@ rock|outcrop_small_shadow|Small rock outcrop with cast shadow
 rock|outcrop_small_grass|Small rock outcrop merged with grass
 rock|outcrop_small_fog|Small rock outcrop with fog-faded base
 rock|cliff_fog_tile|32x32 fogged cliff fill tile
-terrain|grass_patch_octagon|Octagonal dark-green grass patch
-terrain|grass_cross_frame|Yellow-green grass frame around a cross of 32px tiles (inner tiles exported separately)
-terrain|grass_cross_cutout|Grass autotile cutout mask (cross-shaped hole)
+terrain|grass_patch_octagon|Dark-green grass patch with light ragged fringe and cut corners
+terrain|grass_cross_frame|Yellow-green grass frame around a hole for base tiles (the cross tiles are separate sprites)
+terrain|grass_cross_cutout|Green grass frame around a hole with notched corners
 plant|grass_scatter_light|Loose light-green grass blades scatter (decal set)
 terrain|grass_tile_teal_dark|32x32 dark teal grass tile
 terrain|grass_tile_sage|32x32 sage-green grass tile
@@ -125,7 +126,7 @@ plant|grass_tuft_light_a|Dense light-green grass tuft
 plant|grass_tuft_light_b|Dense light-green grass tuft
 terrain|grass_band|Horizontal grass band edge tile
 plant|grass_scatter_green|Loose green grass blades scatter (decal set)
-terrain|cobble_ground_grass_edge|Cobblestone ground tile with grassy edge
+terrain|cobble_ground_grass_edge|Cobblestone ground with grassy ragged edge
 terrain|cobble_tile_hole|Cobblestone tile with hole
 terrain|cobble_overgrown|Cobblestone ground overgrown with grass
 terrain|stone_tile_hole|64x64 stone tile with hole
@@ -134,7 +135,7 @@ terrain|grass_rim_bar_left|Vertical green cliff-rim bar with ragged edges (left)
 rock|pebble_crumbs_a|Loose pebble crumbs
 terrain|grass_tile_light|64x64 light-green grass tile
 terrain|grass_rim_bar_right|Vertical green cliff-rim bar with ragged edges (right)
-terrain|gravel_patch_round|Round gravel patch
+terrain|gravel_patch_round|Gravel ground with loose-stone edge
 terrain|gravel_tile_holes|Gravel tile with holes
 plant|grass_tuft_yellow_cluster|Dense yellow grass tufts cluster
 plant|grass_tuft_yellow|Dense yellow grass tuft
@@ -147,7 +148,7 @@ rock|pebble_b|Single pebble
 rock|pebble_crumbs_b|Loose pebble crumbs
 rock|pebble_c|Single pebble
 terrain|rubble_overlay_a|Rubble and dirt overlay strip
-terrain|pebble_patch_round|Round pebble ground patch
+terrain|pebble_patch_round|Pebble ground with loose-pebble edge
 terrain|pebble_tile_hole|Pebble ground tile with hole
 terrain|rubble_overlay_c|Rubble and dirt overlay strip
 """
@@ -226,8 +227,8 @@ prop|bone_fragments_b|Small bone fragments
 prop|bone_a|Bone
 prop|bone_b|Bone
 prop|bone_ring_arch|Circular bone archway
-terrain|sand_ring_tile|Sand ring edge tile (hole in centre)
-terrain|sand_ring_small|Small sand ring disc
+terrain|sand_ring_tile|Sand border around a hole (ring)
+terrain|sand_ring_small|Small sand disc in four quadrants
 prop|animal_skull|Animal skull
 prop|long_bone|Long curved bone
 prop|bone_fragment_c|Small bone fragment
@@ -258,9 +259,9 @@ rock|pebble_f|Small pebble
 plant|tall_grass_wide|Wide block of tall reeds with foreground tufts
 plant|tall_grass_narrow|Narrow tall reed block with gaps
 plant|tall_grass_block|Tall reed block
-terrain|gravel_patch|Gravel patch with ragged edge
-terrain|sand_pit_square|Sand edge around a square pit
-terrain|gravel_pit|Gravel patch with sand edge
+terrain|gravel_patch|Gravel ground with loose-stone edge
+terrain|sand_pit_square|Sand border around a square hole
+terrain|gravel_pit|Gravel ground with sandy ragged edge
 plant|grass_sprig_a|Small grass sprig
 tree|palm_trunk_a|Palm trunk segment with shadow (stack under a crown)
 tree|palm_trunk_b|Palm trunk segment with shadow (stack under a crown)
@@ -288,9 +289,9 @@ plant|grass_sprig_i|Small grass sprig
 plant|agave_a|Agave plant
 plant|grass_sprig_j|Small grass sprig
 bush|cactus_tall_arms|Tall cactus with arms and shadow
-terrain|sand_pit_dark_large|Large sand pit with dark rim
-terrain|sand_pit_light_small|Sand pit, light rim
-terrain|sand_pit_dark_b|Large sand pit with dark rim
+terrain|sand_pit_dark_large|Sand ground with dark raised rim
+terrain|sand_pit_light_small|Sand ground with light rim
+terrain|sand_pit_dark_b|Golden sand ground with dark raised rim
 terrain|sand_pit_light_b|Sand pit, light rim
 plant|grass_tuft_tall|Tall grass tuft
 plant|agave_b|Agave plant
@@ -303,10 +304,15 @@ terrain|sand_strip_a|Sand strip tile
 rock|sand_crumbs|Sand crumbs
 terrain|sand_strip_b|Sand strip tile
 tree|palm_e|Palm tree with shadow
-rock|desert_rock_arch_a|Desert rock arch with small crater
-rock|desert_rock_arch_b|Desert rock arch with small crater
-terrain|sand_ripples_set|Sand ripple decal set
+rock|sand_dune_a_left|Curved sand dune, left half of a dune arch (pairs with sand_dune_a_right)
+rock|sand_dune_a_right|Curved sand dune, right half of a dune arch (pairs with sand_dune_a_left)
+rock|sand_dune_b_left|Curved sand dune, left half of a dune arch (pairs with sand_dune_b_right)
+rock|sand_dune_b_right|Curved sand dune, right half of a dune arch (pairs with sand_dune_b_left)
+terrain|sand_ripples_a|Group of sand ripples decal
 terrain|sand_crater_b|Sand crater with stone well rim
+terrain|sand_crater_small_a|32x32 small sand crater decal
+terrain|sand_crater_small_b|32x32 small sand crater decal
+terrain|sand_ripples_b|Group of sand ripples decal
 terrain|sand_ripple_tile_a|Sand ripple decal tile
 terrain|sand_ripple_tile_b|Sand ripple decal tile
 rock|sand_pebbles_set_b|Set of small sand pebbles

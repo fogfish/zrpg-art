@@ -21,10 +21,29 @@ CLASSES = [
 SHEETS = {'trees': 'ZRPGtrees.png', 'rocks2': 'ZRPGRocks2.png', 'beach': 'ZRPGBeach.png',
           'jungle': 'ZRPGJunglePlants.png', 'water': 'ZRPGWater.png'}
 GROUND = {'terrain', 'water'}
+ROLE = dict(tl='top-left corner', t='top edge', tr='top-right corner', l='left edge', c='fill',
+            r='right edge', bl='bottom-left corner', b='bottom edge', br='bottom-right corner')
 
-def anchor(img, cls):
-    """Foot point in sprite pixels: bottom-centre of the non-shadow body. Ground classes anchor top-left."""
-    if cls in GROUND: return 0, 0
+def expand(ts, pieces, cls, name, desc):
+    """Tileset item -> piece objects (identical pieces of a role kept once) and the layout grid of piece indexes."""
+    objs, seen, layout = [], {}, {}
+    for p in pieces:
+        key = (p['role'], p['img'].tobytes())
+        if key not in seen:
+            seen[key] = len(objs)
+            objs.append(dict(cls=cls, role=p['role'], img=p['img'], desc='%s: %s' % (desc, ROLE[p['role']]),
+                             src=dict(x=p['x'], y=p['y'], w=p['w'], h=p['h'])))
+        layout[(p['row'], p['col'])] = seen[key]
+    for role in ROLE:
+        same = [o for o in objs if o['role'] == role]
+        for k, o in enumerate(same):
+            o['name'] = '%s_%s%s' % (name, role, k + 1 if len(same) > 1 else '')
+            o['variant'] = k
+    return objs, layout
+
+def anchor(img, cls, tiled=False):
+    """Foot point in sprite pixels: bottom-centre of the non-shadow body. Ground classes and tileset pieces anchor top-left."""
+    if cls in GROUND or tiled: return 0, 0
     a = np.array(img); al = a[..., 3]
     shadow = (al > 8) & (al < 255) & (a[..., :3].astype(int).sum(-1) == 0)
     body = (al > 8) & ~shadow
@@ -38,14 +57,21 @@ def has_shadow(img):
     return bool(((al > 8) & (al < 255) & (a[..., :3].astype(int).sum(-1) == 0)).sum() > 20)
 
 def collect():
-    out = []
+    out, sets = [], []
     for key in ('trees', 'rocks2', 'beach', 'jungle'):
         sp = contact.sprites(key); lab = labels.LABELS[key]
         assert len(sp) == len(lab), key
         for s, (cls, name, desc) in zip(sp, lab):
-            out.append(dict(sheet=key, cls=cls, name=name, desc=desc, img=s['img'],
-                            src=dict(x=s['x'], y=s['y'], w=s['w'], h=s['h'])))
-    water = Image.open(T + SHEETS['water']).convert('RGBA')
+            if 'pieces' not in s:
+                out.append(dict(sheet=key, cls=cls, name=name, desc=desc, img=s['img'],
+                                src=dict(x=s['x'], y=s['y'], w=s['w'], h=s['h'])))
+                continue
+            assert s['tileset']['name'] == name, (key, name, s['tileset']['name'])
+            objs, layout = expand(s['tileset'], s['pieces'], cls, name, desc)
+            ts = dict(name=name, sheet=key, cls=cls, desc=desc, tileset=s['tileset'], objs=objs, layout=layout)
+            for o in objs: o.update(sheet=key, tileset=ts)
+            out += objs; sets.append(ts)
+    water = Image.open(seg.O + SHEETS['water']).convert('RGBA')
     for i in range(21):   # measured: 21 frames 320x128, pitch 160 (32px teal divider between frames)
         out.append(dict(sheet='water', cls='water', name='water_frame_%02d' % (i + 1),
                         desc='Animated deep-water texture, frame %d of 21 (tileable horizontally)' % (i + 1),
@@ -54,7 +80,21 @@ def collect():
     for o in out:
         k = (o['sheet'], o['cls']); counters[k] = counters.get(k, 0) + 1
         o['id'] = '%s-%s-%03d' % (o['sheet'], o['cls'], counters[k])
-    return out
+    return out, sets
+
+def tileset_json(ts):
+    """Catalogue record: how the pieces fit. Bands are px; centre bands repeat in CELL steps."""
+    t = ts['tileset']; C = build.CELL
+    cols, rows = t.get('cols', (1, 1, 1)), t.get('rows', (1, 1, 1))
+    x0, y0, x1, y1 = build.tileset_rect(t)
+    nr = max(r for r, _ in ts['layout']) + 1 if ts['layout'] else 0
+    nc = max(c for _, c in ts['layout']) + 1 if ts['layout'] else 0
+    return dict(name=ts['name'], sheet=ts['sheet'], **{'class': ts['cls']}, description=ts['desc'], cell=C,
+                cols=[n * C for n in cols], rows=[n * C for n in rows], hole=not any(o['role'] == 'c' for o in ts['objs']),
+                pieces={r: [o['id'] for o in ts['objs'] if o['role'] == r] for r in ROLE if any(o['role'] == r for o in ts['objs'])},
+                layout=[[ts['objs'][ts['layout'][(r, c)]]['id'] if (r, c) in ts['layout'] else None for c in range(nc)]
+                        for r in range(nr)],
+                src=dict(x=x0, y=y0, w=x1 - x0, h=y1 - y0))
 
 def pack(objs, W=2048, H=2048, pad=2):
     order = sorted(range(len(objs)), key=lambda i: (-objs[i]['img'].height, -objs[i]['img'].width))
@@ -77,7 +117,7 @@ def pack(objs, W=2048, H=2048, pad=2):
     return files
 
 def main():
-    objs = collect()
+    objs, sets = collect()
     for d in ('sprites', 'atlas'):
         shutil.rmtree(T + d, ignore_errors=True)
     os.makedirs(T + 'atlas')
@@ -85,27 +125,31 @@ def main():
         os.makedirs(T + 'sprites/' + o['sheet'], exist_ok=True)
         o['file'] = 'sprites/%s/%s.png' % (o['sheet'], o['id'])
         o['img'].save(T + o['file'], optimize=True)
-        o['anchor'] = anchor(o['img'], o['cls']); o['shadow'] = has_shadow(o['img'])
+        o['anchor'] = anchor(o['img'], o['cls'], 'tileset' in o); o['shadow'] = has_shadow(o['img'])
     atlases = pack(objs)
-    sizes = {k: Image.open(T + f).size for k, f in SHEETS.items()}
+    sizes = {k: Image.open(seg.O + f).size for k, f in SHEETS.items()}
     cat = dict(
         version=2, generated=datetime.date.today().isoformat(),
         notes='Pixel-exact sprites segmented from the ZRPG sheets. Each sprite PNG is masked: only its own pixels, '
               'transparent elsewhere. src = bounding box in the source sheet; atlas = rectangle in atlas[index]. '
               'anchor = foot point in sprite pixels (place sprite so anchor sits on the map position; y-sort by it). '
-              'terrain/water anchor at top-left.',
+              'terrain/water and tileset pieces anchor at top-left. tilesets = 9-slice sets: corners, repeatable edges '
+              'and fill drawn on a 32 px grid to build ground/mesas of any size.',
         classes=[dict(name=c, description=d) for c, d in CLASSES],
         sheets={k: dict(file=f, w=sizes[k][0], h=sizes[k][1]) for k, f in SHEETS.items()},
         atlases=atlases,
         animations=dict(water=dict(frames=[o['id'] for o in objs if o['cls'] == 'water'], fps=6, loop=True)),
+        tilesets=[tileset_json(ts) for ts in sets],
         sprites=[dict(id=o['id'], name=o['name'], **{'class': o['cls']}, sheet=o['sheet'], description=o['desc'],
                       file=o['file'], w=o['img'].width, h=o['img'].height, src=o['src'], atlas=o['atlas'],
-                      anchor=dict(x=o['anchor'][0], y=o['anchor'][1]), shadow=o['shadow']) for o in objs])
+                      anchor=dict(x=o['anchor'][0], y=o['anchor'][1]), shadow=o['shadow'],
+                      **({'tileset': dict(name=o['tileset']['name'], role=o['role'], variant=o['variant'])}
+                         if 'tileset' in o else {})) for o in objs])
     json.dump(cat, open(T + 'catalog.json', 'w'), indent=1)
     open(T + 'catalog.js', 'w').write('// Generated. Same data as catalog.json, usable from file:// via <script src="catalog.js">.\n'
                                       'window.TILE_CATALOG = ' + json.dumps(cat, separators=(',', ':')) + ';\n')
     write_md(cat)
-    print('sprites', len(objs), 'atlases', [(a['file'], a['w'], a['h']) for a in atlases])
+    print('sprites', len(objs), 'tilesets', len(sets), 'atlases', [(a['file'], a['w'], a['h']) for a in atlases])
 
 def write_md(cat):
     L = []; A = L.append
@@ -121,10 +165,12 @@ def write_md(cat):
     A('- **Two ways to draw:** load `sprites/<sheet>/<id>.png` as an `Image`, or load `atlas/atlas-N.png` once and '
       '`ctx.drawImage(atlas, a.x, a.y, a.w, a.h, dx, dy, a.w, a.h)` with `a = sprite.atlas`. Atlas rects never overlap (2 px padding).')
     A('- **Anchor:** `anchor` (sprite px) is the foot point (bottom-centre of the body, shadow excluded). Draw at '
-      '`dx = worldX - anchor.x`, `dy = worldY - anchor.y` and depth-sort by `worldY`. `terrain` and `water` anchor at `0,0` (top-left) and are drawn first.')
+      '`dx = worldX - anchor.x`, `dy = worldY - anchor.y` and depth-sort by `worldY`. `terrain`, `water` and tileset pieces anchor at `0,0` (top-left) and are drawn first.')
     A('- **Pixel art:** set `ctx.imageSmoothingEnabled = false` and CSS `image-rendering: pixelated`; scale by integers.')
     A('- **Shadows** are baked into the sprite (`shadow: true`) as black at alpha 92. Do not add another shadow.')
     A('- **Water** is an animation: `catalog.animations.water.frames` (21 frames, 320×128, fps 6), tile horizontally.')
+    A('- **Tilesets** (`catalog.tilesets`, section 5) build sand, rock and grass areas of any size from corner, edge and fill '
+      'pieces on a 32 px grid. Their pieces carry `tileset: {name, role, variant}` and anchor at `0,0`.')
     A('- **Ids** are `<sheet>-<class>-<NNN>`; `name` is a readable slug unique within a sheet. Refer to sprites by `id`.')
     A('- **Classes** are fixed to the 7 in section 2. Do not invent new ones.')
     A('')
@@ -170,7 +216,26 @@ def write_md(cat):
                 s['id'], s['name'], s['class'], s['file'], r['x'], r['y'], r['w'], r['h'],
                 s['anchor']['x'], s['anchor']['y'], 'y' if s['shadow'] else '', s['description']))
         A('')
-    A('## 5. How the boxes were made')
+    A('## 5. Tilesets')
+    A('')
+    A('A tileset is a composite from the sheets (mesa, ground patch, pit, ring) split into 9-slice pieces on the 32 px grid. '
+      'Draw it as 3 × 3 bands: corners once, `t`/`b` edges repeated along the top/bottom, `l`/`r` edges down the sides, '
+      '`c` fill inside. `cols`/`rows` are the band sizes in px, [left, centre, right] and [top, middle, bottom]. Side bands '
+      'can be wider than one cell (mesa rims are 64 px, the cliff face is 128 px). The centre band repeats in 32 px steps, '
+      'so `nx × ny` centre cells give `cols[0] + 32·nx + cols[2]` × `rows[0] + 32·ny + rows[2]` px. When a role has several '
+      'variants, cycle them. `hole` = no fill: the ground under the tileset shows through. `layout` lists piece ids as '
+      'arranged in the source sheet, so drawing it row by row reproduces the original art. Reference renderer: '
+      '`examples/terrain.js`.')
+    A('')
+    A('| Tileset | Sheet | Class | cols px | rows px | Hole | Pieces | Description |')
+    A('| --- | --- | --- | --- | --- | --- | --- | --- |')
+    for t in cat['tilesets']:
+        A('| `%s` | `%s` | `%s` | %s | %s | %s | %s | %s |' % (
+            t['name'], t['sheet'], t['class'], '/'.join(map(str, t['cols'])), '/'.join(map(str, t['rows'])),
+            'y' if t['hole'] else '', ', '.join('%s %s' % (r, ' '.join('`%s`' % i for i in ids)) for r, ids in t['pieces'].items()),
+            t['description']))
+    A('')
+    A('## 6. How the boxes were made')
     A('')
     A('- Boxes were **not** taken from the original `ZRPG*.md` specs (QA in `tiles-qa.json` rejected 120 of them). '
       'Every sprite is a pixel-connected component of the sheet alpha (8-connectivity).')
@@ -179,10 +244,12 @@ def write_md(cat):
       'pillar/ledge, tile strips, two jungle plants, frond/shoot) they were separated with hand-placed masks.')
     A('- Specks under 6×6 px were absorbed into the nearest sprite or dropped. Scatter decals (loose grass blades, rubble) are grouped into one sprite per cluster.')
     A('- Removed: solid dark/black placeholder squares (1 in trees, 4 in beach) and the water divider bands.')
+    A('- Composites drawn on the 32 px grid (mesas, plateaus, ground patches, pits, rings) were cut into tileset pieces '
+      '(section 5). Pixels of a composite outside its grid are dropped (11 px in `plateau_tall`, 5 px in `gravel_patch_round`).')
     A('')
-    A('## 6. Regenerating')
+    A('## 7. Regenerating')
     A('')
-    A('Do not edit sprites, atlas or catalog by hand. Change `tools/build.py` (masks: cuts, groups, clips per sheet) or '
+    A('Do not edit sprites, atlas or catalog by hand. Change `tools/build.py` (masks: cuts, groups, clips, tilesets per sheet) or '
       '`tools/labels.py` (class, name, description in reading order), then run:')
     A('')
     A('```sh')
@@ -191,7 +258,8 @@ def write_md(cat):
     A('```')
     A('')
     A('`tools/contact.py` writes `tools/.cache/cs_<sheet>.png`, a numbered contact sheet. Its order must match `labels.py`; '
-      'if a mask change adds or removes a sprite, update the labels to match. Ids are reassigned on regeneration.')
+      'if a mask change adds or removes a sprite, update the labels to match. A tileset is one entry (`T<n>` on the sheet) '
+      'and one label line; its pieces are named `<name>_<role>[<n>]`. Ids are reassigned on regeneration.')
     A('')
     open(T + 'OBJECTS.md', 'w').write('\n'.join(L))
 
